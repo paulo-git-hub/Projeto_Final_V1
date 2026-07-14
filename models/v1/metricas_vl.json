@@ -1,0 +1,30 @@
+{
+    "modelo_id": "modelo_regressao_v1",
+    "data_treinamento": "2026-07-14 03:50:39",
+    "variaveis_preditoras": [
+        "bedrooms",
+        "bathrooms",
+        "sqft_living",
+        "sqft_lot",
+        "floors",
+        "waterfront",
+        "view",
+        "condition",
+        "grade",
+        "sqft_basement",
+        "yr_built",
+        "yr_renovated",
+        "lat",
+        "long",
+        "sqft_living15",
+        "sqft_lot15",
+        "idade_imovel",
+        "foi_reformado"
+    ],
+    "metricas_validacao": {
+        "MAE": 126826.27,
+        "MSE": 45229642641.6,
+        "RMSE": 212672.62,
+        "R2": 0.6986
+    }
+}
