@@ -1,6 +1,6 @@
 {
-    "modelo_id": "modelo_regressao_v1",
-    "data_treinamento": "2026-07-15 04:26:08",
+    "modelo_id": "LinearRegression",
+    "data_treinamento": "2026-07-15 04:32:36",
     "variaveis_preditoras": [
         "bedrooms",
         "bathrooms",
@@ -24,9 +24,11 @@
         "zipcode_group_981"
     ],
     "metricas_validacao": {
-        "MAE": 126832.45,
-        "MSE": 45226971872.93,
-        "RMSE": 212666.34,
-        "R2": 0.6987
+        "MAE_treino": 124948.9275021984,
+        "RMSE_treino": 198879.10830324673,
+        "MAE_teste": 126832.44964388579,
+        "RMSE_teste": 212666.33930391,
+        "R2_teste": 0.6986611818854841,
+        "RMSE_CV_Medio": 199673.3658182035
     }
 }
