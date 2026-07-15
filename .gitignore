@@ -1,3 +1,41 @@
+# === Ambientes Virtuais (Essencial para não subir gigabytes de bibliotecas) ===
+venv/
+.venv/
+env/
+ENV/
+bin/
+lib/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+
+# === Cache do Python ===
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# === Jupyter Notebooks (Arquivos temporários e checkpoints) ===
 .ipynb_checkpoints/
-__pycache__/
-.DS_Store
+*/.ipynb_checkpoints/*
+notebooks/Projeto_Final_V1.ipynb
+
+# === Dados e Modelos (Arquivos pesados e confidenciais) ===
+# Evita subir datasets pesados para o GitHub
+#data/
+#*.csv
+*.xlsx
+*.parquet
+#*.json
+
+# Evita subir os modelos treinados (arquivos pesados de pesos)
+#*.pkl
+*.joblib
+*.h5
+*.onnx
+
+# === Configurações e Credenciais ===
+.env
+.secrets
