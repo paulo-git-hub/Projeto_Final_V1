@@ -1,155 +1,97 @@
-# 🏠 King County House Pricing: Pipeline Preditivo de Machine Learning (v1)
+# Inteligência Artificial para Análise Preditiva Imobiliária (King County, EUA)
 
-Este repositório contém o projeto de conclusão do Módulo 1 da disciplina de **Desenvolvimento de IA para Análise Preditiva**. O objetivo principal é construir um pipeline de Machine Learning de ponta a ponta, altamente modularizado, reprodutível e documentado, aplicando rigor estatístico no tratamento de dados e modelagem preditiva.
+## 📋 Declaração do Problema de Negócio
 
----
+No mercado imobiliário moderno, a precificação incorreta de ativos pode acarretar sérios prejuízos financeiros para imobiliárias, investidores e instituições financeiras. Estimar o valor de venda de um imóvel de forma empírica ou com base em suposições lineares simples frequentemente resulta em modelos enviesados que falham significativamente quando expostos a cenários reais de mercado.
 
-## 🎯 1. O Problema de Negócio e o Dataset
+**Objetivo do Projeto:** Desenvolver um pipeline de Machine Learning escalável e robusto capaz de prever o valor numérico contínuo (variável-alvo `price` em dólares) de imóveis localizados no condado de King County (EUA), com base em suas características físicas e geográficas.
 
-No mercado de tecnologia e mercado imobiliário atual, alimentar algoritmos preditivos com dados ruidosos, inconsistentes ou mal tratados resulta no fenômeno *Garbage In, Garbage Out* (Lixo Entra, Lixo Sai), gerando prejuízos financeiros.
-
-* **O Desafio**: Uma imobiliária do condado de King County (EUA) deseja estimar de forma precisa o preço de venda de residências.
-* **Variável-Alvo**: `price` (Valor numérico contínuo em dólares).
-* **Base de Dados**: `kc_house_data.csv`, contendo aproximadamente 21 mil registros de transações imobiliárias com atributos físicos e geográficos.
-* **Impacto de Negócio**: Apoiar decisões de precificação, compra, venda e financiamento de ativos imobiliários com base em um erro médio controlado.
+**Importância para o Negócio:** Mitigar estimativas equivocadas, otimizar as margens do portfólio da imobiliária e apoiar decisões seguras de compra, venda ou concessão de crédito imobiliário.
 
 ---
 
-## 🏗️ 2. Estrutura do Projeto e Reprodutibilidade
+## 🛠️ Estrutura do Projeto
 
-O projeto foi estruturado seguindo as práticas de engenharia de software e MLOps. Embora o pipeline seja orquestrado por um único notebook, a lógica técnica foi modularizada em arquivos `.py` dentro da pasta `src/`.
+O projeto foi estruturado seguindo as melhores práticas de desenvolvimento de software e ciência de dados, separando a lógica de execução (Notebook) dos submódulos reutilizáveis:
 
 ```text
-projeto_final_ml_king_county/
 ├── data/
-│   ├── raw/                # Dataset bruto (original)
-│   ├── processed/          # Dataset higienizado (Data Prep)
-│   └── final/              # Dataset recortado para a modelagem
-├── models/
-│   └── v1/
-│       ├── modelo_regressao_vl.pkl   # Binário do modelo campeão treinado
-│       └── metricas_vl.json          # Metadados e métricas de desempenho v1
-├── notebooks/
-│   └── projeto_final_v1.ipynb     # Notebook orquestrador (.ipynb)
+│   ├── raw/         # Datasets brutos originais
+│   └── processed/   # Datasets limpos e tratados após o Data Prep
+├── notebook/
+│   └── Projeto_Final_V1.ipynb   # Notebook principal de execução do pipeline
 ├── outputs/
-│   └── figures/            # Gráficos analíticos exportados automaticamente
-├── src/                    # Pacote de módulos Python (Opcional/Diferencial)
-│   ├── __init__.py         # Inicializador de pacote
-│   ├── config.py           # Configuração de caminhos e sementes globais
-│   ├── dataset.py          # Carga de dados, EDA estatística e limpeza
-│   ├── features.py         # Engenharia de atributos, split e escala
-│   ├── plots.py            # Geração de visualizações gráficas
-│   └── modeling/
-│       ├── __init__.py     # Inicializador do submódulo
-│       └── train.py        # Treinamento, validação e persistência
-├── .gitignore              # Arquivo de desconsideração do Git
-├── requirements.txt        # Biblioteca e dependências do ambiente
-├── LICENSE                 # Licença de uso do software
-└── README.md               # Documentação técnica do projeto
-```
+│   └── figures/     # Gráficos e mapas de calor exportados automaticamente
+├── src/             # Código-fonte do projeto (submódulos)
+│   ├── __init__.py
+│   ├── dataset.py   # Funções de carga e higienização estrutural
+│   ├── features.py  # Engenharia de recursos e preparação para modelagem
+│   ├── modeling/
+│   │   └── train.py # Pipeline de treinamento e validação cruzada
+│   └── plots.py     # Lógica de geração de gráficos (EDA e Avaliação)
+└── .gitignore       # Arquivo de configuração para omissão de dados e binários
+---
+
+
+```markdown
+# 🔬 Pipeline de Machine Learning
+
+### 1. Análise Exploratória de Dados (EDA)
+Foi realizada uma análise estatística descritiva para compreender as dimensões, tipos primitivos e distribuições do dataset original (21.613 linhas e 21 colunas).
+
+* **Distribuição da Variável-Alvo:** O histograma de `price` revelou uma assimetria positiva acentuada (cauda longa à direita), indicando a necessidade futura de transformações logarítmicas para estabilizar a variância dos erros em modelos lineares.
+* **Análise de Relações:** Variáveis como área construída (`sqft_living`) e qualidade da construção (`grade`) demonstraram forte correlação positiva com o preço.
+
+### 2. Data Prep & Tratamento de Dados Ruidosos
+Para evitar o fenômeno *Garbage In, Garbage Out*, os dados passaram por um rigoroso tratamento estatístico:
+
+* **Valores Ausentes:** Identificados nulos na coluna `sqft_above`, tratados por meio de imputação pela mediana (1560.0), evitando as distorções que a média causaria devido à assimetria dos dados.
+* **Tratamento de Outliers:** Identificação e remoção de registros inconsistentes (ex: um imóvel com 33 quartos), que afetariam severamente os coeficientes da regressão linear.
+* **Multicolinearidade (VIF):** Foi calculado o Fator de Inflação da Variância (VIF). Variáveis com alta colinearidade (como `sqft_above` com VIF de 5.10, `sqft_living15` e `sqft_lot15`) e identificadores redundantes (`id`) foram removidos para garantir a estabilidade do modelo.
+
+### 3. Feature Engineering
+Foram concebidas novas variáveis para extrair maior valor do ativo:
+
+* **`idade_imovel`:** Calculado a partir da diferença entre o ano de venda e o ano de construção.
+* **`foi_reformado`:** Variável binária (0 ou 1) derivada do ano de renovação.
+* **Prevenção de *Data Leakage*:** Variáveis como preço por metro quadrado foram utilizadas apenas na EDA e omitidas da modelagem para evitar vazamento de dados.
+
+### 4. Validação Cruzada e Treinamento
+Os dados foram divididos em 80% para treinamento e 20% para teste. O escalonamento dos dados foi realizado com o `StandardScaler`, aplicando o método `fit_transform` estritamente nos dados de treino e apenas `transform` nos dados de teste. Foi aplicada a metodologia de Validação Cruzada (*K-Fold* com 5 partições) para garantir a estabilidade das métricas.
+
+---
+# 📊 Desempenho e Diagnóstico dos Modelos
+
+O algoritmo base de Regressão Linear foi confrontado com um modelo não-linear de Árvore de Decisão (`DecisionTreeRegressor`):
+
+| Métrica | Regressão Linear (Treino) | Regressão Linear (Teste) | Árvore de Decisão (Treino) | Árvore de Decisão (Teste) |
+| :--- | :---: | :---: | :---: | :---: |
+| **MAE** (Erro Médio Absoluto) | \$125,216.26 | \$126,898.22 | \$110,677.60 | \$121,132.92 |
+| **RMSE** (Erro Quadrático Médio) | \$199,626.15 | \$213,457.97 | \$182,420.46 | \$219,292.13 |
+| **$R^2$** (Coeficiente de Determinação) | — | **0.6964** | — | 0.6796 |
+
+### 🔍 Diagnóstico Técnico:
+
+* **Modelo Campeão:** A Regressão Linear foi selecionada como o modelo campeão por apresentar maior generalização no conjunto de teste ($R^2$ de 69.64% e menor RMSE).
+* **Overfitting Detectado:** O modelo de Árvore de Decisão apresentou forte indício de *overfitting* (sobreajuste). Embora tenha obtido o menor MAE no conjunto de treino (\$110k), seu desempenho decaiu drasticamente no teste, com o RMSE disparando para \$219k. Isso ocorre porque árvores não podadas tendem a decorar o ruído dos dados de treino em vez de aprender o padrão geral.
 
 ---
 
-## 🛠️ 3. O Pipeline de Machine Learning (Fases 1 a 6)
+# 💼 Interpretação e Veredito de Negócio
 
-### 📊 Fase 1: Análise Exploratória de Dados (EDA)
-* **Estatística Descritiva**: Avaliação das dimensões do dataset, identificação de tipos primitivos e resumo estatístico utilizando o método `.describe()`.
-* **Visualização de Dados**: Foram plotados e exportados 3 gráficos analíticos para a pasta `outputs/figures/`: histograma de preços (avaliando assimetria), dispersão entre variáveis (`sqft_living` e `grade`) contra a variável-alvo, e o mapa de correlação de Pearson.
-* **Análise Textual Crítica**: Identificação de severa assimetria positiva no preço e correlação crítica de colinearidade entre variáveis explicativas.
+Apesar do rigor estatístico aplicado no desenvolvimento, o diagnóstico financeiro indica que nenhum dos modelos está pronto para produção comercial:
 
-### 🧹 Fase 2: Tratamento e Limpeza (Data Prep)
-* **Linhas Duplicadas**: Verificação sistemática para remoção de redundâncias amostrais.
-* **Valores Ausentes**: Identificados e tratados. Justifica-se o uso da **Mediana** em vez da Média por se tratar de um dataset imobiliário de distribuição altamente assimétrica, blindando as imputações contra distorções de outliers.
-* **Gerenciamento de Outliers**: Detecção via diagramas de caixa (boxplots) e tratamento do registro aberrante de 33 quartos (erro clássico de digitação), protegendo os coeficientes da regressão linear de desvios extremos.
+* **Margem de Erro Inaceitável:** Um MAE de \$126.898,22 significa que o modelo erra, em média, essa quantia por imóvel. Em uma propriedade padrão de \$500.000,00, o erro representa mais de 25% do valor total do ativo.
+* **Risco de Prejuízo:** Precificar um imóvel com essa margem de erro faria com que a imobiliária comprasse ativos supervalorizados ou vendesse seu próprio inventário muito abaixo do preço de mercado, gerando quebra de caixa.
+* **Inviabilidade Bancária:** Para a concessão de crédito ou avaliação de garantias imobiliárias, um erro dessa magnitude é perigoso, pois expõe a instituição a um risco de inadimplência desalinhado com o valor real do colateral.
 
-### 📐 Fase 3: Feature Engineering (Colunas Calculadas)
-* **Novas Features**: Geração da variável `idade_imovel` (ano da venda obtido de `date` menos o ano de construção `yr_built`) e da variável binária `foi_reformado`.
-* **Prevenção de Vazamento de Dados (Data Leakage)**: Variáveis como "preço por metro quadrado" foram avaliadas apenas para leitura e EDA, sendo explicitamente excluídas das preditoras do modelo, pois sua permanência faria o modelo "vazar" informações do alvo.
+### 🚀 Próximos Passos para o Módulo 2:
+Para elevar o $R^2$ acima de 85% e reduzir o MAE a níveis comercialmente aceitáveis, as próximas iterações do projeto devem focar em:
 
-### 🔌 Fase 4: Preparação para Modelagem
-* **Mitigação de Multicolinearidade**: Remoção preventiva da variável explicativa `sqft_above` devido ao altíssimo índice de correlação linear (maior que 0.85) com `sqft_living`, o que inflaria as variâncias dos coeficientes da regressão.
-* **Divisão Amostral (Split)**: Separação de X e y, fragmentando os conjuntos em 80% treino e 20% teste com semente aleatória fixa.
-* **Escalonamento Seguro**: Padronização através do `StandardScaler`, aplicando `fit_transform` exclusivamente nos dados de treino e apenas `transform` nos dados de teste.
-
-### 🤖 Fase 5: Modelagem, Validação e Overfitting
-* **Modelagem Comparativa (Diferencial)**: Treinamento do modelo base de **Regressão Linear** comparado a um algoritmo não-linear de **Árvore de Decisão** (`DecisionTreeRegressor`).
-* **Validação Cruzada**: Aplicação da metodologia K-Fold (5 partições) no conjunto de treino para avaliar a estabilidade dos estimadores.
-* **Diagnóstico de Overfitting**: Análise comparativa do erro quadrático (RMSE) entre treino e teste para diagnosticar a capacidade de generalização dos modelos.
-
-### 📈 Fase 6: Avaliação, Interpretação e Versionamento
-* **Métricas Técnicas**: Cálculo do MAE, MSE, RMSE e R² para validação das hipóteses no conjunto de teste.
-* **Análise Gráfica**: Geração e exportação do gráfico de dispersão entre valores reais vs. previstos e histograma de distribuição dos resíduos.
-* **Versionamento Físico**: Salvamento do modelo campeão como `modelo_regressao_vl.pkl` e seu registro histórico de metadados em `metricas_vl.json` na pasta `models/v1/`.
+1. Aplicação de transformação logarítmica na variável-alvo para corrigir a assimetria positiva.
+2. Utilização de algoritmos de *Ensemble* (como *Random Forest* ou *XGBoost*) para mitigar o *overfitting* da árvore isolada e capturar padrões não-lineares.
+3. Aperfeiçoamento do impacto geográfico: Refinar o agrupamento da variável `zipcode` ou utilizar algoritmos de clusterização espacial (K-Means) nas variáveis `lat` e `long` para capturar melhor as nuances de micro-localização do mercado imobiliário.
 
 ---
+> *Projeto desenvolvido como trabalho de conclusão do Módulo 1 do curso de Data Science & Machine Learning.*
 
-## 📈 4. Resultados e Comparativo de Modelos
-
-Abaixo estão apresentados os resultados consolidados das rodadas experimentais da versão **v1**:
-
-| Modelo Preditivo | RMSE (Validação Cruzada) | MAE (Teste) | RMSE (Teste) | Coeficiente de Determinação (R² Teste) | Status |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Regressão Linear** | US$ 201.311,16 | US$ 126.826,27 | US$ 212.672,62 | 0.6986 | Baseline |
-| **Árvore de Decisão** | **US$ 163.892,41** | **US$ 103.450,12** | **US$ 177.951,20** | **0.7889** | **🏆 CAMPEÃO** |
-
-### 🧠 Veredito e Interpretação de Negócios (Fase 6)
-1. **Escolha do Campeão**: A Árvore de Decisão foi eleita a campeã por apresentar um **RMSE significativamente menor** no conjunto de teste (US$ 177.951,20 contra US$ 212.672,62 da Regressão Linear), servindo como critério de desempate exigido.
-2. **Capacidade Explicativa**: O modelo campeão obteve um R² = 0.7889. Isso indica que cerca de **79% de toda a variabilidade de preços** de King County é explicada pelas variáveis físicas e temporais selecionadas.
-3. **Aplicação Prática no Negócio**: O Erro Absoluto Médio (MAE) do modelo campeão indica que a inteligência artificial erra, em média, **US$ 103,4 mil** por imóvel precificado. Para a imobiliária de King County, essa margem de erro serve como um excelente triador automático de preços para carteiras de médio e alto padrão. Entretanto, para casas populares abaixo de US$ 200 mil, recomenda-se auditoria humana, pois o erro percentual relativo torna-se alto.
-
----
-
-## 🗺️ 5. Rastreabilidade de Decisões Técnicas
-
-Para demonstrar conformidade rigorosa com a organização metodológica, as decisões de engenharia e matemática do código estão explicadas e pareadas no notebook principal:
-
-| Bloco do Notebook | Objetivo Prático | Justificativa Técnica Apresentada |
-| :--- | :--- | :--- |
-| **Fase 1** | EDA Estatística | Mapeamento detalhado de distribuições para identificar assimetria e tendências. |
-| **Fase 2** | Limpeza de Dados | Escolha da **Mediana** robusta contra outliers e eliminação manual do outlier de 33 quartos. |
-| **Fase 3** | Engenharia de Recursos | Criação de colunas temporais e exclusão de features baseadas em `price` para banir o *data leakage*. |
-| **Fase 4** | Preparação | Exclusão de `sqft_above` para curar a multicolinearidade e split de dados antes da padronização. |
-| **Fase 5** | Modelagem | Validação Cruzada (K-fold) para assegurar o diagnóstico de generalização e overfitting. |
-| **Fase 6** | Avaliação | Tradução do erro estatístico (MAE) para impacto e risco financeiro de negócio. |
-
----
-
-## 🚀 6. Como Executar o Sistema
-
-Para reproduzir este experimento sem erros, siga o roteiro de execução abaixo:
-
-### Passo 1: Clonar o Repositório
-```bash
-git clone [https://github.com/seu-usuario/projeto_final_v1.git](https://github.com/paulo-git-hub/projeto_final_v1.git)
-cd projeto_final_v1
-```
-
-### Passo 2: Instalar Dependências (requirements.txt)
-Instale todas as bibliotecas e bibliotecas de suporte com as versões exatas do ambiente original:
-```bash
-pip install -r requirements.txt
-```
-
-### Passo 3: Executar o Pipeline
-Abra o notebook principal `/notebooks/projeto_final_v1.ipynb` no Google Colab ou em seu ambiente Jupyter local.
-* Configure a variável `BASE_DIR` no topo do notebook com o seu caminho de diretório local ou do Google Drive.
-* Execute todas as células de forma sequencial (`Run All`). O pipeline carregará os dados brutos, fará o tratamento, treinará os modelos, elegerá o campeão e salvará os arquivos de saída automaticamente.
-
----
-
-## 🔮 7. Melhorias para Versões Futuras (v2, v3...)
-
-Como boas práticas de ciclo de vida de modelos (MLOps), as versões subsequentes podem incluir:
-* **Geolocalização Ativa**: Transformar as variáveis `lat` e `long` em clusters espaciais (usando K-Means) para capturar o real impacto da vizinhança sobre o preço dos imóveis.
-* **Encodings Robustos**: Aplicar Target Encoding na variável `zipcode` baseando-se no preço médio regional, evitando criar dezenas de colunas esparsas.
-* **Algoritmos Avançados**: Implementar estimadores de Gradiente Boosted (XGBoost, LightGBM) para elevar o teto preditivo do R² acima de 85%.
-
----
-
-## 🎥 8. Apresentação do Projeto em Vídeo
-
-A gravação técnica detalhada do projeto, abordando todos os questionamentos obrigatórios da Seção 5.4, está disponível no link abaixo:
-
-* 🔗 **[Assista ao Vídeo Explicativo no Google Drive]** (Acesso em modo leitor para qualquer pessoa com o link).
-
-*Nota: O vídeo possui duração máxima de 10 minutos, conta com a aparição do meu rosto em ambiente iluminado e não fez uso de qualquer ferramenta de criação de vídeo por inteligência artificial.*
