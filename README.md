@@ -6,7 +6,7 @@ No mercado imobiliário moderno, a precificação incorreta de ativos pode acarr
 
 **Objetivo do Projeto:** Desenvolver um pipeline de Machine Learning escalável e robusto capaz de prever o valor numérico contínuo (variável-alvo `price` em dólares) de imóveis localizados no condado de King County (EUA), com base em suas características físicas e geográficas.
 
-**Importância para o Negócio:** Mitigar estimativas equivocadas, otimizar as margens do portfólio da imobiliária e apoiar decisões seguras de compra, venda ou concessão de crédito imobiliário.
+**Impacto no Negócio:** Mitigar estimativas equivocadas, otimizar as margens do portfólio da imobiliária e apoiar decisões sequer de compra, venda ou concessão de crédito imobiliário.
 
 ---
 
@@ -30,11 +30,11 @@ O projeto foi estruturado seguindo as melhores práticas de desenvolvimento de s
 │   │   └── train.py # Pipeline de treinamento e validação cruzada
 │   └── plots.py     # Lógica de geração de gráficos (EDA e Avaliação)
 └── .gitignore       # Arquivo de configuração para omissão de dados e binários
+```
+
 ---
 
-
-```markdown
-# 🔬 Pipeline de Machine Learning
+## 🔬 Pipeline de Machine Learning
 
 ### 1. Análise Exploratória de Dados (EDA)
 Foi realizada uma análise estatística descritiva para compreender as dimensões, tipos primitivos e distribuições do dataset original (21.613 linhas e 21 colunas).
@@ -60,38 +60,38 @@ Foram concebidas novas variáveis para extrair maior valor do ativo:
 Os dados foram divididos em 80% para treinamento e 20% para teste. O escalonamento dos dados foi realizado com o `StandardScaler`, aplicando o método `fit_transform` estritamente nos dados de treino e apenas `transform` nos dados de teste. Foi aplicada a metodologia de Validação Cruzada (*K-Fold* com 5 partições) para garantir a estabilidade das métricas.
 
 ---
-# 📊 Desempenho e Diagnóstico dos Modelos
+
+## 📊 Desempenho e Diagnóstico dos Modelos
 
 O algoritmo base de Regressão Linear foi confrontado com um modelo não-linear de Árvore de Decisão (`DecisionTreeRegressor`):
 
 | Métrica | Regressão Linear (Treino) | Regressão Linear (Teste) | Árvore de Decisão (Treino) | Árvore de Decisão (Teste) |
 | :--- | :---: | :---: | :---: | :---: |
-| **MAE** (Erro Médio Absoluto) | \$125,216.26 | \$126,898.22 | \$110,677.60 | \$121,132.92 |
-| **RMSE** (Erro Quadrático Médio) | \$199,626.15 | \$213,457.97 | \$182,420.46 | \$219,292.13 |
+| **MAE** (Erro Médio Absoluto) | $125.216,26 | $126.898,22 | $110.677,60 | $121.132,92 |
+| **RMSE** (Erro Quadrático Médio) | $199.626,15 | $213.457,97 | $182.420,46 | $219.292,13 |
 | **$R^2$** (Coeficiente de Determinação) | — | **0.6964** | — | 0.6796 |
 
 ### 🔍 Diagnóstico Técnico:
 
 * **Modelo Campeão:** A Regressão Linear foi selecionada como o modelo campeão por apresentar maior generalização no conjunto de teste ($R^2$ de 69.64% e menor RMSE).
-* **Overfitting Detectado:** O modelo de Árvore de Decisão apresentou forte indício de *overfitting* (sobreajuste). Embora tenha obtido o menor MAE no conjunto de treino (\$110k), seu desempenho decaiu drasticamente no teste, com o RMSE disparando para \$219k. Isso ocorre porque árvores não podadas tendem a decorar o ruído dos dados de treino em vez de aprender o padrão geral.
+* **Overfitting Detectado:** O modelo de Árvore de Decisão apresentou forte indício de *overfitting* (sobreajuste). Embora tenha obtido o menor MAE no conjunto de treino ($110k), seu desempenho decaiu drasticamente no teste, com o RMSE disparando para $219k. Isso ocorre porque árvores não podadas tendem a decorar o ruído dos dados de treino em vez de aprender o padrão geral.
 
 ---
 
-# 💼 Interpretação e Veredito de Negócio
+## 💼 Interpretação e Veredito de Negócio
 
 Apesar do rigor estatístico aplicado no desenvolvimento, o diagnóstico financeiro indica que nenhum dos modelos está pronto para produção comercial:
 
-* **Margem de Erro Inaceitável:** Um MAE de \$126.898,22 significa que o modelo erra, em média, essa quantia por imóvel. Em uma propriedade padrão de \$500.000,00, o erro representa mais de 25% do valor total do ativo.
+* **Margem de Erro Inaceitável:** Um MAE de $126.898,22 significa que o modelo erra, em média, essa quantia por imóvel. Em uma propriedade padrão de $500.000,00, o erro representa mais de 25% do valor total do ativo.
 * **Risco de Prejuízo:** Precificar um imóvel com essa margem de erro faria com que a imobiliária comprasse ativos supervalorizados ou vendesse seu próprio inventário muito abaixo do preço de mercado, gerando quebra de caixa.
 * **Inviabilidade Bancária:** Para a concessão de crédito ou avaliação de garantias imobiliárias, um erro dessa magnitude é perigoso, pois expõe a instituição a um risco de inadimplência desalinhado com o valor real do colateral.
 
-### 🚀 Próximos Passos para o Módulo 2:
+### 🚀 Próximos Passos:
 Para elevar o $R^2$ acima de 85% e reduzir o MAE a níveis comercialmente aceitáveis, as próximas iterações do projeto devem focar em:
 
 1. Aplicação de transformação logarítmica na variável-alvo para corrigir a assimetria positiva.
 2. Utilização de algoritmos de *Ensemble* (como *Random Forest* ou *XGBoost*) para mitigar o *overfitting* da árvore isolada e capturar padrões não-lineares.
-3. Aperfeiçoamento do impacto geográfico: Refinar o agrupamento da variável `zipcode` ou utilizar algoritmos de clusterização espacial (K-Means) nas variáveis `lat` e `long` para capturar melhor as nuances de micro-localização do mercado imobiliário.
+3. **Aperfeiçoamento do impacto geográfico:** Refinar o agrupamento por classes da variável `zipcode` realizado no Data Prep ou utilizar algoritmos de clusterização espacial (como o K-Means) diretamente nas variáveis `lat` e `long` para capturar com maior precisão as nuances de micro-localização e vizinhança do mercado imobiliário.
 
 ---
 > *Projeto desenvolvido como trabalho de conclusão do Módulo 1 do curso de Data Science & Machine Learning.*
-
