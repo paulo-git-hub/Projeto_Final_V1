@@ -47,13 +47,14 @@ def preparar_dados_modelagem(df):
     Returns:
         tuple: X_train, X_test, y_train, y_test (DataFrames e Series).
     """
-    print("⚙ Preparando dados para a modelagem (Fase 4 - Com agrupamento de zipcode)...")
+    print("⚙ Preparando dados para a modelagem ...")
     df_processed = df.copy()
 
     # Remover variáveis não necessárias ou que causam multicolinearidade
     # 'id' e 'date' são identificadores/temporais que não serão usados diretamente no modelo linear
-    # 'sqft_above' é removido devido à alta multicolinearidade com 'sqft_living'
-    columns_to_drop_initial = ['id', 'date', 'sqft_above']
+    # 'sqft_above' e 'sqft_living15' e 'sqft_basement' sao removidos devido à alta multicolinearidade com 'sqft_living'
+    # 'sqft_lot15' é removido devido que 'sqft_lot' representa a medida real do lote
+    columns_to_drop_initial = ['id', 'date', 'sqft_above', 'sqft_living15', 'sqft_lot15', 'sqft_basement']
     for col in columns_to_drop_initial:
         if col in df_processed.columns:
             df_processed = df_processed.drop(columns=[col])

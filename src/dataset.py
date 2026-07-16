@@ -13,7 +13,7 @@ def limpar_dados(df):
     print("🧹 Iniciando limpeza de dados (Fase 2)...")
     df_clean = df.copy()
     
-    # Tratamento de Duplicados
+    # 1. Tratamento de Duplicados
     duplicados = df_clean.duplicated().sum()
     if duplicados > 0:
         df_clean = df_clean.drop_duplicates()
@@ -21,17 +21,31 @@ def limpar_dados(df):
     else:
         print("   -> Nenhum registro duplicado detectado.")
         
-    # Tratamento de Nulos por Mediana
-    for col in df_clean.columns:
+    # 2. Tratamento de Nulos por Mediana (Apenas colunas numéricas)
+    for col in df_clean.select_dtypes(include=[np.number]).columns:
         if df_clean[col].isnull().any():
             mediana = df_clean[col].median()
             df_clean[col] = df_clean[col].fillna(mediana)
             print(f"   -> Imputação em '{col}' com mediana: {mediana}")
             
-    # Remoção de Outliers Críticos (Ex: imóvel com 33 quartos)
-    df_clean = df_clean[df_clean['bedrooms'] < 20]
-    print("   -> Outlier de 33 quartos tratado.")
+    # 3. Remoção de Outliers Críticos (Ex: imóvel com 33 quartos)
+    if 'bedrooms' in df_clean.columns:
+        linhas_antes = df_clean.shape[0]
+        df_clean = df_clean[df_clean['bedrooms'] < 20]
+        linhas_removidas = linhas_antes - df_clean.shape[0]
+        print(f"   -> Outlier de quartos tratado ({linhas_removidas} registros removidos).")
     
+    # 4. Tratamento de Multicolinearidade e IDs Irrelevantes
+    colunas_remover = ['id', 'sqft_above', 'sqft_living15', 'sqft_lot15']
+    # Mantém apenas as colunas que realmente existem no DataFrame para evitar erros
+    colunas_presentes = [col for col in colunas_remover if col in df_clean.columns]
+    
+    if colunas_presentes:
+        df_clean = df_clean.drop(columns=colunas_presentes)
+        print(f"   -> Remoção de colunas multicolinares/irrelevantes: {colunas_presentes}")
+
+    # Salvar dados processados
     df_clean.to_csv(DATA_PROCESSED, index=False)
     print(f"💾 Dados limpos salvos em: {DATA_PROCESSED}")
     return df_clean
+
