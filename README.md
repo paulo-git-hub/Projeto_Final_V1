@@ -94,4 +94,4 @@ Para elevar o $R^2$ acima de 85% e reduzir o MAE a níveis comercialmente aceit�
 3. **Aperfeiçoamento do impacto geográfico:** Refinar o agrupamento por classes da variável `zipcode` realizado no Data Prep ou utilizar algoritmos de clusterização espacial (como o K-Means) diretamente nas variáveis `lat` e `long` para capturar com maior precisão as nuances de micro-localização e vizinhança do mercado imobiliário.
 
 ---
-> *Projeto desenvolvido como trabalho de conclusão do Módulo 1 do curso de Data Science & Machine Learning.*
+> *Projeto desenvolvido como trabalho de conclusão do Módulo 1 do Curso Desenvolvimento de IA para Análise Preditiva - Carga Horária:150 horas
