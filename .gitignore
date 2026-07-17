@@ -20,7 +20,7 @@ eggs/
 # === Jupyter Notebooks (Arquivos temporários e checkpoints) ===
 .ipynb_checkpoints/
 */.ipynb_checkpoints/*
-notebooks/Projeto_Final_V1.ipynb
+# notebooks/Projeto_Final_V1.ipynb
 
 # === Dados e Modelos (Arquivos pesados e confidenciais) ===
 # Evita subir datasets pesados para o GitHub

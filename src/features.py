@@ -3,105 +3,100 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
+from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 def criar_novas_features(df):
     """
-    Cria novas features a partir das colunas existentes do DataFrame.
-    Args:
-        df (pd.DataFrame): DataFrame original.
-    Returns:
-        pd.DataFrame: DataFrame com as novas features.
+    Cria novas variáveis (Feature Engineering) para melhorar a performance do modelo.
     """
+    print("💡 Iniciando a criação de novas features (Engenharia de Recursos)...")
     df_features = df.copy()
     
-    # Assegura que 'date' esteja no formato datetime para cálculos
-    if 'date' in df_features.columns:
-        df_features['date'] = pd.to_datetime(df_features['date'])
+    # 1. Criação da 'idade_imovel'
+    # Utilizando 2015 (ano final do dataset) como referência para evitar idades negativas
+    if 'yr_built' in df_features.columns:
+        df_features['idade_imovel'] = 2015 - df_features['yr_built']
         
-    # Idade do imóvel
-    if 'date' in df_features.columns and 'yr_built' in df_features.columns:
-        df_features['idade_imovel'] = df_features['date'].dt.year - df_features['yr_built']
-        
-    # Trata idades negativas para casos onde o ano de construção é posterior ao da venda
-    if 'idade_imovel' in df_features.columns:
-        df_features['idade_imovel'] = df_features['idade_imovel'].apply(lambda x: max(x, 0))
-        
-    # Se foi reformado (binário)
+    # 2. Criação da variável binária 'foi_reformado'
+    # Se o ano de renovação for maior que 0, recebe 1 (Sim), caso contrário, 0 (Não)
     if 'yr_renovated' in df_features.columns:
-        df_features['foi_reformado'] = (df_features['yr_renovated'] > 0).astype(int)
+        df_features['foi_reformado'] = df_features['yr_renovated'].apply(lambda x: 1 if x > 0 else 0)
         
-    print(" Executando Feature Engineering (Fase 3)...")
+    print("  -> Features 'idade_imovel' e 'foi_reformado' criadas com sucesso!")
+    
     return df_features
 
-
-def preparar_dados_modelagem(df):
+def calcular_vif(df, colunas=None):
     """
-    Prepara o DataFrame para a modelagem:
-    Agrupa 'zipcode' em categorias mais amplas e aplica One-Hot Encoding.
-    Remove variáveis desnecessárias ou que causam multicolinearidade.
-    Divide os dados em conjuntos de treino e teste.
-    Aplica escalonamento nas features numéricas e transformação logarítmica no target.
-    Args:
-        df (pd.DataFrame): DataFrame com as features criadas.
-    Returns:
-        tuple: X_train, X_test, y_train, y_test (DataFrames e Series).
+    Calcula o Fator de Inflação da Variância (VIF) para as variáveis selecionadas.
+    Variáveis com VIF > 5 (ou 10, a depender do critério) devem ser analisadas
+    para remoção ou combinação.
     """
-    print("Preparando dados para a modelagem ...")
-    df_processed = df.copy()
+    print("📊 Calculando o Fator de Inflação da Variância (VIF)...")
     
-    # Remover variáveis não necessárias ou que causam multicolinearidade
-    columns_to_drop_initial = ['id', 'date', 'sqft_above', 'sqft_living15', 'sqft_lot15', 'sqft_basement']
-    for col in columns_to_drop_initial:
-        if col in df_processed.columns:
-            df_processed = df_processed.drop(columns=[col])
+    # Se nenhuma lista de colunas for fornecida, analisa todas as numéricas (exceto o preço)
+    if colunas is None:
+        colunas = df.select_dtypes(include=['number']).columns.tolist()
+        if 'price' in colunas:
+            colunas.remove('price')
             
-    # Feature Engineering para zipcode: agrupamento
-    if 'zipcode' in df_processed.columns:
-        # Cria uma nova feature de grupo baseada nos 3 primeiros dígitos do zipcode
-        df_processed['zipcode_group'] = df_processed['zipcode'].astype(str).str[:3]
-        # Remove a coluna zipcode original
-        df_processed = df_processed.drop(columns=['zipcode'])
-    else:
-        print("Aviso: 'zipcode' não encontrado no DataFrame para agrupamento. Ignorando...")
+    # Garante que usaremos apenas colunas que realmente existem no DataFrame
+    colunas_presentes = [col for col in colunas if col in df.columns]
+    
+    X = df[colunas_presentes].copy()
+    
+    # Adiciona a constante (intercepto), obrigatória para o cálculo correto do VIF
+    X['intercept'] = 1
+    
+    # Executa o cálculo para cada coluna
+    vif_data = pd.DataFrame()
+    vif_data["Variável"] = X.columns
+    vif_data["VIF"] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+    
+    # Remove o intercepto do resultado visual e ordena de forma decrescente
+    vif_data = vif_data[vif_data['Variável'] != 'intercept'].sort_values(by="VIF", ascending=False)
+    
+    return vif_data.round(2)
+
+def preparar_dados_modelagem(df, target_col='price'):
+    """
+    Realiza a remoção de colunas multicolineares, separa variáveis previsoras e alvo,
+    divide em treino/teste e aplica o escalonamento seguro.
+    """
+    print("⚙️ Preparando dados para modelagem...")
+    df_model = df.copy()
+
+    # 1. Eliminação de multicolinearidade
+    colunas_remover = ['yr_built', 'yr_renovated']
+    colunas_presentes = [c for c in colunas_remover if c in df_model.columns]
+    if colunas_presentes:
+        df_model = df_model.drop(columns=colunas_presentes)
+        print(f"  -> Colunas removidas (multicolinearidade): {colunas_presentes}")
+
+    # 2. SELEÇÃO SEGURA: Seleciona apenas colunas numéricas para o X
+    # Isso impede que colunas de texto (como datas) quebrem o StandardScaler
+    df_numerico = df_model.select_dtypes(include=['number'])
+    
+    if target_col not in df_numerico.columns:
+        raise ValueError(f"Coluna alvo '{target_col}' não encontrada ou não é numérica.")
         
-    # Separar features (X) e target (y)
-    X = df_processed.drop(columns=['price'], errors='ignore')
-    
-    # 🔥 AQUI ENTRA O LOGARITMO: Aplicando log1p na variável-alvo para estabilizar a assimetria
-    y = np.log1p(df_processed['price'])
-    
-    # Identificar colunas numéricas e categóricas para pré-processamento
-    numerical_cols = X.select_dtypes(include=['int64', 'float64']).columns
-    categorical_cols = X.select_dtypes(include=['object', 'category']).columns
-    
-    # Criação do pré-processador: escalonamento para numéricas e One-Hot Encoding para categóricas
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('num', StandardScaler(), numerical_cols),
-            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_cols)
-        ],
-        remainder='passthrough'
-    )
-    
-    # Divisão em treino e teste (80/20)
-    X_train_raw, X_test_raw, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
-   # Aplica o pré-processamento (escalonamento + one-hot encoding)
-    X_train_processed = preprocessor.fit_transform(X_train_raw)
-    X_test_processed = preprocessor.transform(X_test_raw)
-    
-    # Recupera os nomes das colunas diretamente do encoder treinado
-    ohe_feature_names = []
-    if 'cat' in preprocessor.named_transformers_:
-        fitted_encoder = preprocessor.named_transformers_['cat']
-        if hasattr(fitted_encoder, 'get_feature_names_out'):
-            ohe_feature_names = list(fitted_encoder.get_feature_names_out(categorical_cols))
-        else:
-            ohe_feature_names = list(fitted_encoder.get_feature_names(categorical_cols))
-            
-    all_feature_names = list(numerical_cols) + ohe_feature_names
+    X = df_numerico.drop(columns=[target_col])
+    y = df_numerico[target_col]
 
-    X_train = pd.DataFrame(X_train_processed, columns=all_feature_names, index=X_train_raw.index)
-    X_test = pd.DataFrame(X_test_processed, columns=all_feature_names, index=X_test_raw.index)
+    # 3. Split Amostral (80% Treino / 20% Teste)
+    # random_state=42 garante que a divisão será sempre a mesma toda vez que você rodar o código
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    print(f"  -> Split Amostral: 80% Treino ({X_train.shape[0]} linhas), 20% Teste ({X_test.shape[0]} linhas).")
+
+    # 4. Escalonamento Seguro
+    scaler = StandardScaler()
     
-    return X_train, X_test, y_train, y_test
+    # IMPORTANTE: O 'fit' (aprender a escala) é feito APENAS nos dados de treino!
+    X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns, index=X_train.index)
+    
+    # Nos dados de teste, usamos apenas o 'transform', aplicando a escala aprendida do treino
+    X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns, index=X_test.index)
+    
+    print("  -> Escalonamento seguro (StandardScaler) aplicado com sucesso.")
+
+    return X_train_scaled, X_test_scaled, y_train, y_test
