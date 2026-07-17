@@ -97,7 +97,7 @@ Descolamento das Métricas:** Aqui, o erro no treinamento ($100,490.68) é iluso
 * **Alerta de RMSE:** Apesar do MAE (erro médio) da Árvore ser menor que o da Regressão Linear, o RMSE dela no teste é o maior de todos ($214,569.68). Como a métrica RMSE penaliza fortemente erros grandes, isso prova que a Árvore de Decisão comete desvios individuais muito mais drásticos do que a Regressão Linear quando erra o preço de uma casa.
 
 * **3. Métricas Globais e Limitações
-Poder de Explicação (R²):** O R² está empatado na casa dos 0.69 para ambos. Isso significa que cerca de 69% da variação nos preços dos imóveis pode ser explicada pelas colunas numéricas que você selecionou. É um bom valor de partida, mas insuficiente para precisão de mercado.
+Poder de Explicação (R²):** O R² está empatado na casa dos 0.69 para ambos. Isso significa que cerca de 69% da variação nos preços dos imóveis pode ser explicada pelas colunas numéricas selecionadas. É um bom valor de partida, mas insuficiente para precisão de mercado.
 
 * **Teto de Desempenho (Underfitting):** Embora a Regressão Linear não sofra de overfitting, ambos os modelos esbarram em um alto viés (underfitting). Erros médios que ultrapassam a casa dos 120 mil dólares e picos de erro (RMSE) acima de 212 mil mostram que algoritmos simples não conseguem capturar toda a complexidade e não-linearidade do mercado imobiliário.
 
