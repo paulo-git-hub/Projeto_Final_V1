@@ -73,16 +73,33 @@ Os dados foram divididos em 80% para treinamento e 20% para teste. O escalonamen
 
 O algoritmo base de Regressão Linear foi confrontado com um modelo não-linear de Árvore de Decisão (`DecisionTreeRegressor`):
 
-| Métrica | Regressão Linear (Treino) | Regressão Linear (Teste) | Árvore de Decisão (Treino) | Árvore de Decisão (Teste) |
-| :--- | :---: | :---: | :---: | :---: |
-| **MAE** (Erro Médio Absoluto) | $125.216,26 | $126.898,22 | $110.677,60 | $121.132,92 |
-| **RMSE** (Erro Quadrático Médio) | $199.626,15 | $213.457,97 | $182.420,46 | $219.292,13 |
-| **$R^2$** (Coeficiente de Determinação) | — | **0.6964** | — | 0.6796 |
+### Diagnóstico de Overfitting (Treino vs Teste)
+
+| Modelo | MAE (Treino) | MAE (Teste) | RMSE (Teste) | R² (Teste) | Diagnóstico Final |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Regressão Linear | $ 125,444.52 | $ 127,456.21 | $ 212,493.32 | 0.6992 | Ajuste Estável / Boa generalização |
+| Árvore de Decisão | $ 100,490.68 | $ 112,298.57 | $ 214,569.68 | 0.6932 | Overfitting (Erro sobe no teste) |
 
 ### 🔍 Diagnóstico Técnico:
 
-* **Modelo Campeão:** A Regressão Linear foi selecionada como o modelo campeão por apresentar maior generalização no conjunto de teste ($R^2$ de 69,92% e menor RMSE).
-* **Overfitting Detectado:** O modelo de Árvore de Decisão apresentou forte indício de *overfitting* (sobreajuste). Embora tenha obtido o menor MAE no conjunto de treino ($125k), seu desempenho decaiu drasticamente no teste, com o RMSE disparando para $212k. Isso ocorre porque árvores não podadas tendem a decorar o ruído dos dados de treino em vez de aprender o padrão geral.
+* **1. Regressão Linear (Ajuste Estável)
+Consistência do Erro (MAE):** O modelo apresenta uma variação muito pequena entre o erro no treinamento ($125,444.52) e o erro no teste ($127,456.21). A diferença é de menos de 2%.
+
+* **Interpretação:** Essa proximidade indica que o modelo conseguiu aprender os padrões gerais (a tendência) sem memorizar os dados. Ele tem alta capacidade de generalização e estabilidade, mantendo o mesmo nível de precisão quando apresentado a imóveis que nunca viu antes.
+
+* **Vantagem:** Possui baixa variância estatística, tornando-o um modelo mais seguro e previsível.
+
+* **2. Árvore de Decisão (Overfitting)
+Descolamento das Métricas:** Aqui, o erro no treinamento ($100,490.68) é ilusoriamente bom. Quando o modelo é testado com dados novos, o erro sobe mais de 11%, chegando a $112,298.57.
+
+* **Interpretação:** Este é o sintoma clássico do overfitting (sobreajuste). A árvore criou "regras de divisão" tão específicas e profundas que acabou decorando as peculiaridades da base de treino em vez de aprender as regras reais do mercado. Quando recebe dados novos, ela se confunde e a margem de erro dispara.
+
+* **Alerta de RMSE:** Apesar do MAE (erro médio) da Árvore ser menor que o da Regressão Linear, o RMSE dela no teste é o maior de todos ($214,569.68). Como a métrica RMSE penaliza fortemente erros grandes, isso prova que a Árvore de Decisão comete desvios individuais muito mais drásticos do que a Regressão Linear quando erra o preço de uma casa.
+
+* **3. Métricas Globais e Limitações
+Poder de Explicação (R²):** O R² está empatado na casa dos 0.69 para ambos. Isso significa que cerca de 69% da variação nos preços dos imóveis pode ser explicada pelas colunas numéricas que você selecionou. É um bom valor de partida, mas insuficiente para precisão de mercado.
+
+* **Teto de Desempenho (Underfitting):** Embora a Regressão Linear não sofra de overfitting, ambos os modelos esbarram em um alto viés (underfitting). Erros médios que ultrapassam a casa dos 120 mil dólares e picos de erro (RMSE) acima de 212 mil mostram que algoritmos simples não conseguem capturar toda a complexidade e não-linearidade do mercado imobiliário.
 
 ---
 

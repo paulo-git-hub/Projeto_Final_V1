@@ -31,7 +31,7 @@ eggs/
 #*.json
 
 # Evita subir os modelos treinados (arquivos pesados de pesos)
-#*.pkl
+*.pkl
 *.joblib
 *.h5
 *.onnx
