@@ -1,0 +1,18 @@
+[
+    {
+        "Modelo":"Regressão Linear",
+        "MAE (Treino)":"$ 125,444.52",
+        "MAE (Teste)":"$ 127,456.21",
+        "RMSE (Teste)":"$ 212,493.32",
+        "R² (Teste)":"0.6992",
+        "Diagnóstico Final":"Ajuste Estável \/ Boa generalização"
+    },
+    {
+        "Modelo":"Árvore de Decisão",
+        "MAE (Treino)":"$ 100,490.68",
+        "MAE (Teste)":"$ 112,298.57",
+        "RMSE (Teste)":"$ 214,569.68",
+        "R² (Teste)":"0.6932",
+        "Diagnóstico Final":"Overfitting (Erro sobe no teste)"
+    }
+]

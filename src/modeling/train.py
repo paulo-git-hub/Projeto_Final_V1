@@ -1,5 +1,6 @@
 import os
 import joblib
+import json
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
@@ -37,13 +38,12 @@ def treinar_e_avaliar_modelo(X_train, X_test, y_train, y_test):
         rmse_test = np.sqrt(mean_squared_error(y_test, y_pred_test))
         r2_test = r2_score(y_test, y_pred_test)
         
-        # 4. Lógica de Diagnóstico Automático (Tolerância de 5% de variação)
+        # 4. Lógica de Diagnóstico Automático
         if mae_test > (mae_train * 1.05):
             diagnostico = "Overfitting (Erro sobe no teste)"
         else:
             diagnostico = "Ajuste Estável / Boa generalização"
             
-        # Armazena os dados para a tabela
         metricas_lista.append({
             "Modelo": nome,
             "MAE (Treino)": f"$ {mae_train:,.2f}",
@@ -71,25 +71,30 @@ def treinar_e_avaliar_modelo(X_train, X_test, y_train, y_test):
 
 def salvar_modelo(modelo, nome_modelo):
     """
-    Salva o modelo campeão treinado na pasta de outputs em formato .joblib.
+    Salva o modelo campeão com o nome fixado pela arquitetura (.pkl).
     """
-    # Tenta obter a pasta de modelos do config, senão deduz a partir da pasta de figuras
-    try:
-        from src.config import MODELS_DIR
-    except ImportError:
-        from src.config import OUTPUT_FIGURES_DIR
-        # Cria a pasta 'models' ao lado da pasta 'figures'
-        MODELS_DIR = os.path.join(os.path.dirname(OUTPUT_FIGURES_DIR), 'models')
+    from src.config import MODEL_DIR
+    os.makedirs(MODEL_DIR, exist_ok=True)
     
-    # Garante que a pasta de destino exista
-    os.makedirs(MODELS_DIR, exist_ok=True)
+    caminho_completo = os.path.join(MODEL_DIR, "Projeto_Final_v1.pkl")
     
-    # Formata o nome do arquivo
-    nome_arquivo = f"modelo_{nome_modelo.lower().replace(' ', '_')}.joblib"
-    caminho_completo = os.path.join(MODELS_DIR, nome_arquivo)
-    
-    # Salva o arquivo em disco
     joblib.dump(modelo, caminho_completo)
-    print(f"💾 Modelo '{nome_modelo}' persistido com sucesso em: {caminho_completo}")
+    print(f"💾 Modelo campeão ({nome_modelo}) salvo em: {caminho_completo}")
+    
+    return caminho_completo
+
+
+def salvar_metricas(df_metricas):
+    """
+    Salva o dataframe de métricas no formato .json
+    """
+    from src.config import MODEL_DIR
+    os.makedirs(MODEL_DIR, exist_ok=True)
+    
+    caminho_completo = os.path.join(MODEL_DIR, "metricas_v1.json")
+    
+    # orient='records' salva como uma lista de objetos JSON bem formatada
+    df_metricas.to_json(caminho_completo, orient='records', force_ascii=False, indent=4)
+    print(f"📊 Métricas salvas com sucesso em: {caminho_completo}")
     
     return caminho_completo
