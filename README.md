@@ -15,24 +15,32 @@ No mercado imobiliário moderno, a precificação incorreta de ativos pode acarr
 O projeto foi estruturado seguindo as melhores práticas de desenvolvimento de software e ciência de dados, separando a lógica de execução (Notebook) dos submódulos reutilizáveis:
 
 ```text
+projeto/
 ├── data/
-│   ├── raw/         # Datasets brutos originais
-│   └── processed/   # Datasets limpos e tratados após o Data Prep
-├── notebook/
-│   └── Projeto_Final_V1.ipynb   # Notebook principal de execução do pipeline
+│ ├── raw/ # Datasets brutos originais
+│ ├── processed/ # Datasets limpos e tratados após o Data Prep
+│ └── final/ # Recorte usado na modelagem
+├── models/
+│ └── v1/
+│ ├── Projeto_Final_v1.pkl
+│ └── metricas_v1.json
+├── notebooks/ # notebook principal (.ipynb)
 ├── outputs/
-│   └── figures/     # Gráficos e mapas de calor exportados automaticamente
-├── src/             # Código-fonte do projeto (submódulos)
-│   ├── __init__.py
-│   ├── dataset.py   # Funções de carga e higienização estrutural
-│   ├── features.py  # Engenharia de recursos e preparação para modelagem
-│   ├── modeling/
-│   │   └── train.py # Pipeline de treinamento e validação cruzada
-│   └── plots.py     # Lógica de geração de gráficos (EDA e Avaliação)
-└── .gitignore       # Arquivo de configuração para omissão de dados e binários
+│ └── figures/
+├── src/ # modularização em .py
+│ ├── __init__.py # torna src/ um pacote importável
+│ ├── config.py # caminhos e parâmetros
+│ ├── dataset.py # carga/salvamento dos dados
+│ ├── features.py # limpeza + colunas derivadas
+│ ├── plots.py # funções de visualização
+│ └── modeling/
+│ ├── __init__.py # torna modeling/ um subpacote
+│ └── train.py # treino e avaliação
+├── requirements.txt
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
-
----
 
 ## 🔬 Pipeline de Machine Learning
 
@@ -73,8 +81,8 @@ O algoritmo base de Regressão Linear foi confrontado com um modelo não-linear 
 
 ### 🔍 Diagnóstico Técnico:
 
-* **Modelo Campeão:** A Regressão Linear foi selecionada como o modelo campeão por apresentar maior generalização no conjunto de teste ($R^2$ de 69.64% e menor RMSE).
-* **Overfitting Detectado:** O modelo de Árvore de Decisão apresentou forte indício de *overfitting* (sobreajuste). Embora tenha obtido o menor MAE no conjunto de treino ($110k), seu desempenho decaiu drasticamente no teste, com o RMSE disparando para $219k. Isso ocorre porque árvores não podadas tendem a decorar o ruído dos dados de treino em vez de aprender o padrão geral.
+* **Modelo Campeão:** A Regressão Linear foi selecionada como o modelo campeão por apresentar maior generalização no conjunto de teste ($R^2$ de 69,92% e menor RMSE).
+* **Overfitting Detectado:** O modelo de Árvore de Decisão apresentou forte indício de *overfitting* (sobreajuste). Embora tenha obtido o menor MAE no conjunto de treino ($125k), seu desempenho decaiu drasticamente no teste, com o RMSE disparando para $212k. Isso ocorre porque árvores não podadas tendem a decorar o ruído dos dados de treino em vez de aprender o padrão geral.
 
 ---
 
@@ -82,7 +90,7 @@ O algoritmo base de Regressão Linear foi confrontado com um modelo não-linear 
 
 Apesar do rigor estatístico aplicado no desenvolvimento, o diagnóstico financeiro indica que nenhum dos modelos está pronto para produção comercial:
 
-* **Margem de Erro Inaceitável:** Um MAE de $126.898,22 significa que o modelo erra, em média, essa quantia por imóvel. Em uma propriedade padrão de $500.000,00, o erro representa mais de 25% do valor total do ativo.
+* **Margem de Erro Inaceitável:** Um MAE de $127.456,21 significa que o modelo erra, em média, essa quantia por imóvel. Em uma propriedade padrão de $500.000,00, o erro representa mais de 25% do valor total do ativo.
 * **Risco de Prejuízo:** Precificar um imóvel com essa margem de erro faria com que a imobiliária comprasse ativos supervalorizados ou vendesse seu próprio inventário muito abaixo do preço de mercado, gerando quebra de caixa.
 * **Inviabilidade Bancária:** Para a concessão de crédito ou avaliação de garantias imobiliárias, um erro dessa magnitude é perigoso, pois expõe a instituição a um risco de inadimplência desalinhado com o valor real do colateral.
 
@@ -94,4 +102,66 @@ Para elevar o $R^2$ acima de 85% e reduzir o MAE a níveis comercialmente aceit�
 3. **Aperfeiçoamento do impacto geográfico:** Refinar o agrupamento por classes da variável `zipcode` realizado no Data Prep ou utilizar algoritmos de clusterização espacial (como o K-Means) diretamente nas variáveis `lat` e `long` para capturar com maior precisão as nuances de micro-localização e vizinhança do mercado imobiliário.
 
 ---
+
+Instruções detalhadas para a execução do projeto.
+
+Eu dividi as instruções em duas partes: Execução Local (ideal para quem clonar o GitHub) e Execução via Google Colab.
+
+🚀 Como Executar o Projeto
+Você pode reproduzir este pipeline de dados em sua máquina local ou executá-lo diretamente na nuvem. Siga o passo a passo correspondente ao seu ambiente de preferência:
+
+📋 Pré-requisitos (Execução Local)
+Certifique-se de ter instalado em sua máquina:
+
+Python 3.8+
+
+Git
+
+Um ambiente de desenvolvimento com suporte a notebooks (VS Code, JupyterLab ou Jupyter Notebook).
+
+💻 Opção 1: Execução em Máquina Local
+1. Clone o repositório:
+Abra o seu terminal e baixe o projeto para a sua máquina.
+
+Bash
+git clone https://github.com/paulo-git-hub/Projeto_Final_V1.git
+cd Projeto_Final_V1
+
+2. Crie e ative um ambiente virtual:
+É uma boa prática isolar as bibliotecas do projeto do restante do seu sistema operacional.
+
+Bash
+# No Windows:
+python -m venv venv
+venv\Scripts\activate
+
+# No Linux/Mac:
+python3 -m venv venv
+source venv/bin/activate
+3. Instale as dependências:
+O arquivo requirements.txt mapeia todas as bibliotecas e versões exatas utilizadas neste projeto (como Pandas, Scikit-Learn e Seaborn).
+
+Bash
+pip install -r requirements.txt
+4. Execute o Notebook:
+Abra a sua interface preferida ou inicie o Jupyter pelo terminal:
+
+Bash
+jupyter notebook notebooks/Projeto_Final_V1.ipynb
+Dica de Execução: Rode as células sequencialmente, de cima para baixo. O pipeline foi arquitetado para fluir logicamente desde a extração dos dados brutos até a persistência do modelo em disco na pasta models/v1/.
+
+☁️ Opção 2: Execução via Google Colab
+Caso prefira rodar o sistema diretamente pelo navegador, sem instalar bibliotecas localmente:
+
+Faça o download do repositório inteiro e faça o upload para uma pasta no seu Google Drive.
+
+Abra o arquivo Projeto_Final_V1.ipynb utilizando o Google Colab.
+
+Na primeira célula do notebook, autorize a montagem do disco (drive.mount) para que o Colab consiga enxergar os arquivos do projeto.
+
+Ajuste a variável BASE_DIR na célula de configuração inicial para apontar para o caminho exato onde você salvou a pasta no seu Drive. 
+Sugestão: BASE_DIR = "/content/drive/MyDrive/Colab Notebooks/Projeto Final/Projeto_Final_V1"
+
+Execute as células de forma sequencial, aguardando a geração automática dos gráficos na tela e o salvamento dos arquivos nas pastas locais virtuais do Drive.
+
 > *Projeto desenvolvido como trabalho de conclusão do Módulo 1 do Curso Desenvolvimento de IA para Análise Preditiva - Carga Horária:150 horas
