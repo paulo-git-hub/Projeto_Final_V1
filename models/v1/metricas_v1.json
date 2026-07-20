@@ -1,18 +1,18 @@
 [
     {
         "Modelo":"Regressão Linear",
-        "MAE (Treino)":"$ 125,444.52",
-        "MAE (Teste)":"$ 127,456.21",
-        "RMSE (Teste)":"$ 212,493.32",
-        "R² (Teste)":"0.6992",
-        "Diagnóstico Final":"Ajuste Estável \/ Boa generalização"
+        "MAE (Treino)":"$ 111,440.72",
+        "MAE (Teste)":"$ 118,646.84",
+        "RMSE (Teste)":"$ 320,097.49",
+        "R² (Teste)":"0.3173",
+        "Variação do Erro":"+6.47%"
     },
     {
         "Modelo":"Árvore de Decisão",
-        "MAE (Treino)":"$ 100,490.68",
-        "MAE (Teste)":"$ 112,298.57",
-        "RMSE (Teste)":"$ 214,569.68",
-        "R² (Teste)":"0.6932",
-        "Diagnóstico Final":"Overfitting (Erro sobe no teste)"
+        "MAE (Treino)":"$ 98,255.44",
+        "MAE (Teste)":"$ 105,638.81",
+        "RMSE (Teste)":"$ 187,092.03",
+        "R² (Teste)":"0.7668",
+        "Variação do Erro":"+7.51%"
     }
 ]
