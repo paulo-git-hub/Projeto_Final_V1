@@ -9,10 +9,10 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
 def treinar_e_avaliar_modelo(X_train, X_test, y_train, y_test):
     """
-    Treina os modelos, extrai as métricas de treino e teste, 
-    gera uma tabela de diagnóstico de overfitting e elege o campeão.
+    Treina os modelos aplicando transformação logarítmica no preço (Target), 
+    extrai as métricas e elege o campeão.
     """
-    print("🤖 Iniciando treinamento comparativo de modelos...")
+    print("🤖 Iniciando treinamento (com Transformação Logarítmica no Preço)...")
     
     modelos = {
         "Regressão Linear": LinearRegression(),
@@ -22,35 +22,41 @@ def treinar_e_avaliar_modelo(X_train, X_test, y_train, y_test):
     resultados = {}
     metricas_lista = []
     
+    # 🌟 NOVIDADE: Transforma o y_train (preço) para a escala logarítmica
+    y_train_log = np.log1p(y_train)
+    
     for nome, modelo in modelos.items():
         print(f"  -> Treinando {nome}...")
         
-        # 1. Treinamento
-        modelo.fit(X_train, y_train)
+        # 1. Treinamento na escala log
+        modelo.fit(X_train, y_train_log)
         
-        # 2. Predições (Treino e Teste)
-        y_pred_train = modelo.predict(X_train)
-        y_pred_test = modelo.predict(X_test)
+        # 2. Predições (o modelo vai prever em escala log)
+        y_pred_train_log = modelo.predict(X_train)
+        y_pred_test_log = modelo.predict(X_test)
         
-        # 3. Cálculo das Métricas
+        # 🌟 NOVIDADE: Reverte a previsão (Exponencial) para voltar a ser Dólares reais
+        y_pred_train = np.expm1(y_pred_train_log)
+        y_pred_test = np.expm1(y_pred_test_log)
+        
+        # 3. Cálculo das Métricas (usando o valor em dólares reais contra a previsão em dólares)
         mae_train = mean_absolute_error(y_train, y_pred_train)
         mae_test = mean_absolute_error(y_test, y_pred_test)
         rmse_test = np.sqrt(mean_squared_error(y_test, y_pred_test))
         r2_test = r2_score(y_test, y_pred_test)
         
-        # 4. Lógica de Diagnóstico Automático
-        if mae_test > (mae_train * 1.05):
-            diagnostico = "Overfitting (Erro sobe no teste)"
-        else:
-            diagnostico = "Ajuste Estável / Boa generalização"
-            
+	# 4. Cálculo da Variação Percentual do Erro (Teste vs Treino)
+        variacao_pct = ((mae_test - mae_train) / mae_train) * 100
+        diagnostico = f"{variacao_pct:+.2f}%"
+        
+        # Armazena os dados para a tabela
         metricas_lista.append({
             "Modelo": nome,
             "MAE (Treino)": f"$ {mae_train:,.2f}",
             "MAE (Teste)": f"$ {mae_test:,.2f}",
             "RMSE (Teste)": f"$ {rmse_test:,.2f}",
             "R² (Teste)": f"{r2_test:.4f}",
-            "Diagnóstico Final": diagnostico
+            "Variação do Erro": diagnostico  # ✔ Nome alterado para combinar com o percentual
         })
         
         resultados[nome] = {
@@ -58,6 +64,12 @@ def treinar_e_avaliar_modelo(X_train, X_test, y_train, y_test):
             "rmse": rmse_test,
             "pred": y_pred_test
         }
+        
+    df_metricas = pd.DataFrame(metricas_lista)
+    nome_campeao = min(resultados, key=lambda k: resultados[k]["rmse"])
+    campeao_info = resultados[nome_campeao]
+    
+    return campeao_info["pred"], nome_campeao, campeao_info["modelo"], df_metricas
         
     # 5. Criação do DataFrame dinâmico com os resultados
     df_metricas = pd.DataFrame(metricas_lista)

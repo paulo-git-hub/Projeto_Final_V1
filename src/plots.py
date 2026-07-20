@@ -18,7 +18,7 @@ def plotar_histograma_preco(df, coluna_preco='price'):
     sns.histplot(df[coluna_preco], kde=True, ax=ax, bins=50, color='skyblue')
     
     ax.set_title('Distribuição do Preço dos Imóveis', fontsize=16)
-    ax.set_xlabel('Preço ($)', fontsize=12)
+    ax.set_xlabel('Preço em Milhões (US$)', fontsize=12)
     ax.set_ylabel('Frequência', fontsize=12)
     plt.grid(axis='y', alpha=0.75)
     plt.tight_layout()
@@ -45,7 +45,7 @@ def plotar_analise_exploratoria(df, coluna_alvo='price'):
     
     # 2. Estilização
     ax.set_title('Distribuição do Preço dos Imóveis', fontsize=16)
-    ax.set_xlabel('Preço ($)', fontsize=12)
+    ax.set_xlabel('Preço em Milhões (US$)', fontsize=12)
     ax.set_ylabel('Frequência', fontsize=12)
     plt.grid(axis='y', alpha=0.75)
     plt.tight_layout()
@@ -69,9 +69,9 @@ def plotar_dispersao_area_preco(df):
     sns.scatterplot(x='sqft_living', y='price', data=df, ax=ax, alpha=0.6, color='coral')
     
     # 2. Estilização
-    ax.set_title('Relação entre Área Construída (sqft_living) e Preço (price)', fontsize=16)
-    ax.set_xlabel('Área Construída (sqft_living)', fontsize=12)
-    ax.set_ylabel('Preço ($)', fontsize=12)
+    ax.set_title('Relação entre Área Construída ft²(sqft_living) e Preço US$ (price)', fontsize=16)
+    ax.set_xlabel('Área Construída ft²(sqft_living)', fontsize=12)
+    ax.set_ylabel('Preço em Milhões(US$)', fontsize=12)
     plt.grid(alpha=0.75)
     plt.tight_layout()
     
@@ -96,7 +96,7 @@ def plotar_dispersao_qualidade_preco(df):
     # 2. Estilização
     ax.set_title('Relação entre Qualidade da Construção (grade) e Preço (Price)', fontsize=16)
     ax.set_xlabel('Qualidade (grade)', fontsize=12)
-    ax.set_ylabel('Preço ($)', fontsize=12)
+    ax.set_ylabel('Preço em Milhões (US$)', fontsize=12)
     plt.grid(alpha=0.75)
     plt.tight_layout()
     
@@ -159,7 +159,7 @@ def plotar_boxplots_outliers(df):
     axes[0].set_title("Outliers: Número de Quartos")
     
     sns.boxplot(data=df, x='sqft_living', color='skyblue', ax=axes[1])
-    axes[1].set_title("Outliers: Área Construída")
+    axes[1].set_title("Outliers: Área Construída ft²")
     
     plt.tight_layout()
     
@@ -194,8 +194,8 @@ def plotar_avaliacao_modelo(y_true, y_pred):
     axes[0].plot([limite_min, limite_max], [limite_min, limite_max], color='red', linestyle='--', lw=2)
     
     axes[0].set_title('Dispersão Preditiva (Real vs. Predito)', fontsize=14)
-    axes[0].set_xlabel('Preço Real ($)', fontsize=11)
-    axes[0].set_ylabel('Preço Predito ($)', fontsize=11)
+    axes[0].set_xlabel('Preço Real (US$)', fontsize=11)
+    axes[0].set_ylabel('Preço Predito (US$)', fontsize=11)
     axes[0].grid(True, alpha=0.5)
     
     # --- 2. ANÁLISE RESIDUAL ---
@@ -205,8 +205,8 @@ def plotar_avaliacao_modelo(y_true, y_pred):
     axes[1].axhline(y=0, color='red', linestyle='--', lw=2)
     
     axes[1].set_title('Análise Residual (Predito vs. Erro)', fontsize=14)
-    axes[1].set_xlabel('Preço Predito ($)', fontsize=11)
-    axes[1].set_ylabel('Resíduos / Erro ($)', fontsize=11)
+    axes[1].set_xlabel('Preço Predito (US$)', fontsize=11)
+    axes[1].set_ylabel('Resíduos / Erro (US$)', fontsize=11)
     axes[1].grid(True, alpha=0.5)
     
     plt.tight_layout()
