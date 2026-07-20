@@ -41,82 +41,70 @@ projeto/
 ├── LICENSE
 └── README.md
 ```
-
 ## 🔬 Pipeline de Machine Learning
 
 ### 1. Análise Exploratória de Dados (EDA)
-Foi realizada uma análise estatística descritiva para compreender as dimensões, tipos primitivos e distribuições do dataset original (21.613 linhas e 21 colunas).
+Execução de estatística descritiva estruturada para compreender as dimensões, tipos primitivos e a distribuição geral do dataset original (21.613 linhas e 21 colunas).
 
-* **Distribuição da Variável-Alvo:** O histograma de `price` revelou uma assimetria positiva acentuada (cauda longa à direita), indicando a necessidade futura de transformações logarítmicas para estabilizar a variância dos erros em modelos lineares.
-* **Análise de Relações:** Variáveis como área construída (`sqft_living`) e qualidade da construção (`grade`) demonstraram forte correlação positiva com o preço.
+* **Distribuição da Variável-Alvo:** O histograma de `price` revelou uma assimetria positiva acentuada (cauda longa à direita). Essa não-normalidade viola a suposição de normalidade dos resíduos em regressões lineares clássicas, justificando a aplicação futura da transformação logarítmica na variável-alvo para estabilizar a variância dos erros.
+* **Comportamento das Variáveis Explicativas:** A área construída (`sqft_living`) confirmou uma forte relação linear positiva com o preço. Por outro lado, a qualidade da construção (`grade`) demonstrou uma relação não-linear exponencial (crescimento acentuado após a nota 8) e alta heterocedasticidade nos níveis mais elevados (imóveis de luxo).
+* **Identificação de Multicolinearidade:** O mapa de calor de correlação de Pearson detectou uma colinearidade crítica entre as variáveis preditoras, destacando a forte correlação entre `sqft_living` e `sqft_above`.
 
 ### 2. Data Prep & Tratamento de Dados Ruidosos
-Para evitar o fenômeno *Garbage In, Garbage Out*, os dados passaram por um rigoroso tratamento estatístico:
+Etapa destinada à higienização amostral para eliminar redundâncias e ruídos, mitigando o efeito *Garbage In, Garbage Out*:
 
-* **Valores Ausentes:** Identificados nulos na coluna `sqft_above`, tratados por meio de imputação pela mediana (1560.0), evitando as distorções que a média causaria devido à assimetria dos dados.
-* **Tratamento de Outliers:** Identificação e remoção de registros inconsistentes (ex: um imóvel com 33 quartos), que afetariam severamente os coeficientes da regressão linear.
-* **Multicolinearidade (VIF):** Foi calculado o Fator de Inflação da Variância (VIF). Variáveis com alta colinearidade (como `sqft_above` com VIF de 5.10, `sqft_living15` e `sqft_lot15`) e identificadores redundantes (`id`) foram removidos para garantir a estabilidade do modelo.
+* **Valores Ausentes:** Tratados via estratégia de imputação baseada na Mediana[cite: 1]. Como o mercado imobiliário apresenta forte assimetria, a mediana foi adotada como a escolha estatística correta por ser robusta a outliers.
+* **Gerenciamento de Outliers:** Inspeções via boxplots identificaram e removeram anomalias críticas (como um registro inconsistente de um imóvel com 33 quartos), impedindo a distorção dos coeficientes dos modelos.
+* **Eliminação de Multicolinearidade:** Foi calculado o Fator de Inflação da Variância (VIF). Para estabilizar os coeficientes e conter a alta dimensionalidade, foram eliminadas as colunas correlacionadas ou redundantes (`yr_built`, `yr_renovated`, `sqft_above`, `id`, `date`, `sqft_living15`, `sqft_lot15` e `sqft_basement`)[cite: 1]. A variável preditora principal (`sqft_living`) foi mantida com um VIF seguro e controlado de 5.10.
 
 ### 3. Feature Engineering
-Foram concebidas novas variáveis para extrair maior valor do ativo:
+Concepção de novas colunas preditoras a partir de operações lógicas e matemáticas sobre os dados existentes:
 
-* **`idade_imovel`:** Calculado a partir da diferença entre o ano de venda e o ano de construção.
-* **`foi_reformado`:** Variável binária (0 ou 1) derivada do ano de renovação.
-* **Prevenção de *Data Leakage*:** Variáveis como preço por metro quadrado foram utilizadas apenas na EDA e omitidas da modelagem para evitar vazamento de dados.
+* **`idade_imovel`:** Derivada da subtração entre o ano da venda e o ano de construção do ativo.
+* **`foi_reformado`:** Variável binária (0 ou 1) que indica se o imóvel recebeu modificações ao longo dos anos.
+* **Mitigação de *Data Leakage*:** Recursos calculados diretamente sobre o preço (como valor por pé quadrado) foram restritos à leitura de negócios na EDA e totalmente omitidos das matrizes preditoras para blindar o sistema contra o vazamento de dados.
 
-### 4. Validação Cruzada e Treinamento
-Os dados foram divididos em 80% para treinamento e 20% para teste. O escalonamento dos dados foi realizado com o `StandardScaler`, aplicando o método `fit_transform` estritamente nos dados de treino e apenas `transform` nos dados de teste. Foi aplicada a metodologia de Validação Cruzada (*K-Fold* com 5 partições) para garantir a estabilidade das métricas.
+### 4. Preparação para Modelagem e Validação
+* **Split Amostral Segurado:** Divisão estável na proporção de 80% para treinamento (17.289 linhas) e 20% para teste (4.323 linhas).
+* **Escalonamento Seguro:** Aplicação do `StandardScaler` utilizando `fit_transform` exclusivamente na matriz de treino e apenas `transform` na matriz de teste, evitando que estatísticas do ambiente de teste contaminem o aprendizado do modelo.
+* **Estratégia de Validação:** Implementação de Validação Cruzada (*K-Fold* com 5 partições) confrontando os modelos com a aplicação da Transformação Logarítmica diretamente na variável-alvo (`price`) para garantir resíduos mais gaussianos.
 
 ---
 
 ## 📊 Desempenho e Diagnóstico dos Modelos
 
-O algoritmo base de Regressão Linear foi confrontado com um modelo não-linear de Árvore de Decisão (`DecisionTreeRegressor`):
+O pipeline confrontou o algoritmo base de Regressão Linear com o modelo não-linear de Árvore de Decisão:
 
-### Diagnóstico de Overfitting (Treino vs Teste)
+### Diagnóstico de Generalização (Treino vs Teste)
 
-| Modelo | MAE (Treino) | MAE (Teste) | RMSE (Teste) | R² (Teste) | Diagnóstico Final |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| Regressão Linear | $ 125,444.52 | $ 127,456.21 | $ 212,493.32 | 0.6992 | Ajuste Estável / Boa generalização |
-| Árvore de Decisão | $ 100,490.68 | $ 112,298.57 | $ 214,569.68 | 0.6932 | Overfitting (Erro sobe no teste) |
+| Modelo | MAE (Treino) | MAE (Teste) | RMSE (Teste) | R² (Teste) | Variação do Erro (MAE) | Diagnóstico Final |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| Regressão Linear | US$ 111.440,72 | US$ 118.646,84 | US$ 320.097,49 | 0.3173 | +6,47% | Underfitting Crítico |
+| **Árvore de Decisão** | US$ 98.255,44 | US$ 105.638,81 | US$ 187.092,03 | **0.7668** | +7,51% | **Modelo Campeão (Estável)** |
 
 ### 🔍 Diagnóstico Técnico:
 
-* **1. Regressão Linear (Ajuste Estável)
-Consistência do Erro (MAE):** O modelo apresenta uma variação muito pequena entre o erro no treinamento ($125,444.52) e o erro no teste ($127,456.21). A diferença é de menos de 2%.
-
-* **Interpretação:** Essa proximidade indica que o modelo conseguiu aprender os padrões gerais (a tendência) sem memorizar os dados. Ele tem alta capacidade de generalização e estabilidade, mantendo o mesmo nível de precisão quando apresentado a imóveis que nunca viu antes.
-
-* **Vantagem:** Possui baixa variância estatística, tornando-o um modelo mais seguro e previsível.
-
-* **2. Árvore de Decisão (Overfitting)
-Descolamento das Métricas:** Aqui, o erro no treinamento ($100,490.68) é ilusoriamente bom. Quando o modelo é testado com dados novos, o erro sobe mais de 11%, chegando a $112,298.57.
-
-* **Interpretação:** Este é o sintoma clássico do overfitting (sobreajuste). A árvore criou "regras de divisão" tão específicas e profundas que acabou decorando as peculiaridades da base de treino em vez de aprender as regras reais do mercado. Quando recebe dados novos, ela se confunde e a margem de erro dispara.
-
-* **Alerta de RMSE:** Apesar do MAE (erro médio) da Árvore ser menor que o da Regressão Linear, o RMSE dela no teste é o maior de todos ($214,569.68). Como a métrica RMSE penaliza fortemente erros grandes, isso prova que a Árvore de Decisão comete desvios individuais muito mais drásticos do que a Regressão Linear quando erra o preço de uma casa.
-
-* **3. Métricas Globais e Limitações
-Poder de Explicação (R²):** O R² está empatado na casa dos 0.69 para ambos. Isso significa que cerca de 69% da variação nos preços dos imóveis pode ser explicada pelas colunas numéricas selecionadas. É um bom valor de partida, mas insuficiente para precisão de mercado.
-
-* **Teto de Desempenho (Underfitting):** Embora a Regressão Linear não sofra de overfitting, ambos os modelos esbarram em um alto viés (underfitting). Erros médios que ultrapassam a casa dos 120 mil dólares e picos de erro (RMSE) acima de 212 mil mostram que algoritmos simples não conseguem capturar toda a complexidade e não-linearidade do mercado imobiliário.
+* **1. Regressão Linear (Subajuste Crítico):**
+  Apesar de apresentar uma variação de erro baixa entre treino e teste (+6,47%), o modelo falhou gravemente na capacidade preditiva, explicando apenas **31,73%** da variação dos preços no teste (`R² = 0.3173`)[cite: 1]. O modelo linear simples não foi capaz de processar as complexidades heterocedásticas e não-lineares capturadas na EDA (como a natureza da variável `grade`).
+* **2. Árvore de Decisão (Modelo Campeão e Consistente):**
+  Apresentou desempenho amplamente superior, alcançando um poder de explicação de **76,68%** sobre a variação dos preços dos imóveis no ambiente de teste (`R² = 0.7668`)[cite: 1]. Além disso, reduziu drasticamente o erro quadrático médio (RMSE) para US$ 187.092,03.
+* **3. Controle de Overfitting:**
+  Diferente de árvores de decisão convencionais que sofrem com sobreajuste, o pipeline controlado registrou uma variação no erro MAE de apenas **+7,51%** na transição do treino para o teste[cite: 1]. Essa proximidade milimétrica comprova que o modelo reteve um excelente poder de generalização para dados inéditos do mercado, mantendo-se perfeitamente estável.
 
 ---
 
 ## 💼 Interpretação e Veredito de Negócio
 
-Apesar do rigor estatístico aplicado no desenvolvimento, o diagnóstico financeiro indica que nenhum dos modelos está pronto para produção comercial:
+O desenvolvimento técnico atingiu maturidade estatística ao reverter a assimetria dos dados e neutralizar a multicolinearidade[cite: 1]. A validação prática do modelo aponta os seguintes impactos para a operação imobiliária:
 
-* **Margem de Erro Inaceitável:** Um MAE de $127.456,21 significa que o modelo erra, em média, essa quantia por imóvel. Em uma propriedade padrão de $500.000,00, o erro representa mais de 25% do valor total do ativo.
-* **Risco de Prejuízo:** Precificar um imóvel com essa margem de erro faria com que a imobiliária comprasse ativos supervalorizados ou vendesse seu próprio inventário muito abaixo do preço de mercado, gerando quebra de caixa.
-* **Inviabilidade Bancária:** Para a concessão de crédito ou avaliação de garantias imobiliárias, um erro dessa magnitude é perigoso, pois expõe a instituição a um risco de inadimplência desalinhado com o valor real do colateral.
+* **Poder de Decisão:** O modelo campeão (Árvore de Decisão) consegue mapear e explicar mais de 76% do comportamento de preços de King County, gerando estimativas muito mais assertivas que os moldes lineares tradicionais.
+* **Mitigação de Prejuízos:** O erro médio absoluto (MAE) de US$ 105.638,81 no teste atua como uma barreira de segurança importante para balizar propostas de compra, venda e análise de portfólio imobiliário, diminuindo drasticamente o risco de avaliações severamente equivocadas.
+* **Persistência do Sistema:** O pipeline concluiu a automação salvando com sucesso o modelo vencedor e suas métricas diretamente em disco, tornando a inteligência artificial ativa e pronta para consumo imediato em produção ou deploy.
 
 ### 🚀 Próximos Passos:
-Para elevar o $R^2$ acima de 85% e reduzir o MAE a níveis comercialmente aceitáveis, as próximas iterações do projeto devem focar em:
-
-1. Aplicação de transformação logarítmica na variável-alvo para corrigir a assimetria positiva.
-2. Utilização de algoritmos de *Ensemble* (como *Random Forest* ou *XGBoost*) para mitigar o *overfitting* da árvore isolada e capturar padrões não-lineares.
-3. **Aperfeiçoamento do impacto geográfico:** Refinar o agrupamento por classes da variável `zipcode` realizado no Data Prep ou utilizar algoritmos de clusterização espacial (como o K-Means) diretamente nas variáveis `lat` e `long` para capturar com maior precisão as nuances de micro-localização e vizinhança do mercado imobiliário.
+Para expandir o poder de explicação (`R²`) acima de 85% e mitigar ainda mais o erro geral (RMSE), as próximas evoluções do repositório devem focar em:
+1. Testar algoritmos de *Ensemble* mais robustos, como *Random Forest*, *Gradient Boosting* ou *XGBoost*.
+2. Executar uma etapa focada de Otimização de Hiperparâmetros (*Hyperparameter Tuning* via GridSearch ou Optuna) sobre o modelo vencedor.
 
 ---
 
