@@ -24,9 +24,16 @@ projeto/
 │ └── v1/
 │ ├── Projeto_Final_v1.pkl
 │ └── metricas_v1.json
-├── notebooks/ # notebook principal (.ipynb)
+├── notebooks/
+│ └── Projeto_Final_V1.ipynb
 ├── outputs/
 │ └── figures/
+│   └── correlation_heatmap.png
+│   └── fase2_outliers_boxplots.png
+│   └── grade_vs_price.png
+│   └── performance_modelo_campeao.png
+│   └── price_distribution.png
+│   └── sqft_living_vs_price.png
 ├── src/ # modularização em .py
 │ ├── __init__.py # torna src/ um pacote importável
 │ ├── config.py # caminhos e parâmetros
@@ -34,8 +41,8 @@ projeto/
 │ ├── features.py # limpeza + colunas derivadas
 │ ├── plots.py # funções de visualização
 │ └── modeling/
-│ ├── __init__.py # torna modeling/ um subpacote
-│ └── train.py # treino e avaliação
+│   ├── __init__.py # torna modeling/ um subpacote
+│   └── train.py # treino e avaliação
 ├── requirements.txt
 ├── .gitignore
 ├── LICENSE
