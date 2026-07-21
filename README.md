@@ -177,3 +177,4 @@ Sugestão: BASE_DIR = "/content/drive/MyDrive/Colab Notebooks/Projeto Final/Proj
 Execute as células de forma sequencial, aguardando a geração automática dos gráficos na tela e o salvamento dos arquivos nas pastas locais virtuais do Drive.
 
 > *Projeto desenvolvido como trabalho de conclusão do Módulo 1 do Curso Desenvolvimento de IA para Análise Preditiva - Carga Horária:150 horas
+Vídeo de apresentação: https://youtu.be/Ucij64hcTnY
